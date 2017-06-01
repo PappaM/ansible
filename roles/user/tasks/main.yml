@@ -1,0 +1,59 @@
+# Create a user when mode == create & additional_groups are defined
+- name: Create user "{{ username }}" with additional groups "{{ additional_groups }}"
+  user: name="{{ username }}" uid="{{ uid }}" group="{{ username }}" groups="{{ additional_groups }}"
+  when: mode == 'create' and additional_groups is defined
+
+# Create a user when mode == create & additional_groups are NOT defined
+- name: Create user "{{ username }}"
+  user: name="{{ username }}" uid="{{ uid }}" group="{{ username }}"
+  when: mode == 'create' and additional_groups is not defined
+
+# Set the pre-configured password for user bellict when mode == create and username == bellict
+- name: Set password for user "{{ username }}"
+  user: name="{{ username }}" password={{ bellict_password }}
+  when: mode == 'create' and username == 'bellict'
+
+# Set the pre-configured password for user belluser when mode == create and username == belluser
+- name: Set password for user "{{ username }}"
+  user: name="{{ username }}" password={{ belluser_password }}
+  when: mode == 'create' and username == 'belluser'
+
+# Delete a user when mode == delete
+- name: Delete user "{{ username }}"
+  user: name="{{ username }}" state=absent
+  when: mode == 'delete'
+
+# Delete a user including homedir when mode == delete_all
+- name: Delete user "{{ username }}"
+  user: name="{{ username }}" state=absent remove=yes
+  when: mode == 'delete_all'
+
+# Modify a user's UID when mode == modify_uid
+- name: Change UID of user "{{ username }}" to UID "{{ uid }}" 
+  user: name="{{ username }}" uid="{{ uid }}"
+  when: mode == 'modify_uid'
+
+# Modify a user's primary group when mode == modify_primary_group
+- name: Change primary group of user "{{ username }}" to group "{{ primary_group }}"
+  user: name="{{ username }}" group="{{ primary_group }}"
+  when: mode == 'modify_primary_group'
+
+# Modify a user's additional group(s) when mode == modify_additional_groups
+- name: Change additional groups of user "{{ username }}" to groups "{{ additional_groups }}"
+  user: name="{{ username }}" groups="{{ additional_groups }}"
+  when: mode == 'modify_additional_groups'
+
+# Set a password when mode == set_password
+- name: Set password for user "{{ username }}"
+  user: name="{{ username }}" password={{ password }}
+  when: mode == 'set_password'
+
+# Set the shell when mode == set_shell
+- name: Set shell for user "{{ username }}"
+  user: name="{{ username }}" shell={{ shell }}
+  when: mode == 'set_shell'
+
+# Set account expiry when mode == set_expiration
+- name: Set account expiration
+  user: name="{{ username }}" expires={{ expiration | int }}
+  when: mode == 'set_expiration'

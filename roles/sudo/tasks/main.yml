@@ -1,0 +1,127 @@
+# Check if the sudo userfile exists
+- name: Check if /etc/sudoers.d/user-{{ username }} exists
+  stat: path=/etc/sudoers.d/user-{{ username }}
+  register: sudo_userfile_exists
+  when: mode == 'user_without_pw' or mode == 'user_with_pw'
+
+# Check if the sudo groupfile exists
+- name: Check if /etc/sudoers.d/group-{{ groupname }} exists
+  stat: path=/etc/sudoers.d/group-{{ groupname }}
+  register: sudo_groupfile_exists
+  when: mode == 'group_without_pw' or mode == 'group_with_pw'
+
+# Allow sudo for all commands without password for user {{ username }}
+- name: Allow sudo without password
+  lineinfile: dest=/etc/sudoers.d/user-{{ username }}
+    state=present
+    create=yes
+    line='{{ username }} ALL=(ALL) NOPASSWD:ALL'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'user_without_pw' and username != '' and sudo_userfile_exists.stat.isreg is not defined
+
+# Allow sudo for all commands with password for user {{ username }}
+- name: Allow sudo with password
+  lineinfile: dest=/etc/sudoers.d/user-{{ username }}
+    state=present
+    create=yes
+    line='{{ username }} ALL=(ALL) PASSWD:ALL'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'user_with_pw' and username != '' and sudo_userfile_exists.stat.isreg is not defined
+
+# Allow sudo for all commands without password for group {{ groupname }}
+- name: Allow sudo without password
+  lineinfile: dest=/etc/sudoers.d/group-{{ groupname }}
+    state=present
+    create=yes
+    line='%{{ groupname }} ALL=(ALL) NOPASSWD:ALL'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'group_without_pw' and groupname != '' and sudo_groupfile_exists.stat.isreg is not defined
+
+# Allow sudo for all commands with password for group {{ groupname }}
+- name: Allow sudo with password
+  lineinfile: dest=/etc/sudoers.d/group-{{ groupname }}
+    state=present
+    create=yes
+    line='%{{ groupname }} ALL=(ALL) PASSWD:ALL'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'group_with_pw' and groupname != '' and sudo_groupfile_exists.stat.isreg is not defined 
+
+#regexp='^Cmnd_Alias {{ cmd_alias }}.*'
+#validate='visudo -cf %s'
+# Add a command alias 
+- name: Add command alias {{ cmd_alias }}
+  lineinfile: dest=/etc/sudoers.d/commandaliases
+    state=present
+    regexp='^Cmnd_Alias {{ cmd_alias }}.*'
+    create=yes
+    line='Cmnd_Alias {{ cmd_alias }} = {{ command_list }}'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'add_cmd_alias' and command_list is defined 
+
+# Allow a user to access a command alias without password
+- name: Allow user "{{ username }}" to execute command alias {{ cmd_alias }} without password
+  lineinfile: dest=/etc/sudoers.d/user-{{ username }}
+    state=present
+    regexp='{{ username }} ALL = .* "{{ cmd_alias }}"'    
+    create=yes
+    line='{{ username }} ALL=NOPASSWD:{{ cmd_alias }}'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'user_cmd_alias_without_pw'
+
+# Allow a user to access a command alias with password
+- name: Allow user "{{ username }}" to execute command alias {{ cmd_alias }} without password
+  lineinfile: dest=/etc/sudoers.d/user-{{ username }}
+    state=present
+    regexp='{{ username }} ALL = .* {{ cmd_alias }}'
+    create=yes
+    line='{{ username }} ALL=PASSWD:{{ cmd_alias }}'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'user_cmd_alias_with_pw'
+
+# Allow a group to access a command alias without password
+- name: Allow group "{{ groupname }}" to execute command alias {{ cmd_alias }} without password
+  lineinfile: dest=/etc/sudoers.d/group-{{ groupname }}
+    state=present
+    regexp='%{{ groupname }} ALL = .* "{{ cmd_alias }}"'
+    create=yes
+    line='%{{ groupname }} ALL=NOPASSWD:{{ cmd_alias }}'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'group_cmd_alias_without_pw'
+
+# Allow a group to access a command alias with password
+- name: Allow group "{{ groupname }}" to execute command alias {{ cmd_alias }} without password
+  lineinfile: dest=/etc/sudoers.d/group-{{ groupname }}
+    state=present
+    regexp='%{{ groupname }} ALL = .* "{{ cmd_alias }}"'
+    create=yes
+    line='%{{ groupname }} "ALL=PASSWD:{{ cmd_alias }}"'
+    owner=root
+    group=root
+    mode=0640
+    validate='visudo -cf %s'
+  when: mode == 'group_cmd_alias_with_pw'
+

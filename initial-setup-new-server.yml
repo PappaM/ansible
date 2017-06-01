@@ -1,0 +1,21 @@
+- hosts: all
+  vars:
+    username: ansible
+    uid : 5001
+  remote_user: root
+
+  tasks:
+  - name: install minimal require package for ansible on client
+    package: name=libselinux-python state=latest
+  - name : Add group equal to username
+    group: name={{ username }} gid={{ uid }}
+  - name: Add user
+    user: name={{ username }} comment="user {{ username }}" uid={{ uid }} group={{ username }} groups=wheel
+  - name: Placing key
+    authorized_key: user={{ username }} key="{{ lookup('file', './files/authorized_keys.ansible.pub') }}"
+  - name: make sure /etc/sudoers.d exists
+    file: path=/etc/sudoers.d state=directory mode=0750 owner=root group=root
+  - name: make sure /etc/sudoers.d is used
+    lineinfile: dest=/etc/sudoers line='^#includedir /etc/sudoers.d$' state=present validate='visudo -cf %s' backup=yes
+  - name: add to sudoers
+    lineinfile: dest=/etc/sudoers.d/ansible mode=0440 owner=root group=root state=present line='ansible ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s' backup=yes

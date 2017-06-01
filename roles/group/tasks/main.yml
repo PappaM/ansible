@@ -1,0 +1,22 @@
+# Create a group when mode == create and the gid is set
+- name: Creating group "{{ groupname }}" with GID "{{ gid }}"
+  group: name="{{ groupname }}" gid="{{ gid }}" 
+  when: mode == 'create' and gid is defined 
+
+# Create a group when mode == create and the gid is not set
+- name: Creating group "{{ groupname }}"
+  group: name="{{ groupname }}" state=present
+  when: mode == 'create' and gid is not defined 
+
+# Delete a group when mode == delete
+- name: Delete group "{{ groupname }}"
+  group: name="{{ groupname }}" state=absent
+  when: mode == 'delete'
+
+# Modify a group's gid when mode == modify and the gid is set
+- name: Changing GID of group "{{ groupname }}" to GID "{{ gid }}"
+  group: name="{{ groupname }}" gid="{{ gid }}"
+  when: mode == 'modify_gid' and gid is defined 
+
+
+
