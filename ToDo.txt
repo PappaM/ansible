@@ -1,0 +1,2 @@
+Make PKI to let git push work without password.
+Make PKI for user ansible so it can logon without password, must be in beachhead because other scripts will rely on it.
