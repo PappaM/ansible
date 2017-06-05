@@ -1,0 +1,27 @@
+- hosts: newhosts
+  remote_user: pi
+  become: yes
+
+  tasks:
+    - name: Install required package
+      package: name=libselinux-python state=latest
+
+    - name: Create group ansible
+      group: name="{{ ansible_groupname }}" gid="{{ ansible_gid }}"
+
+    - name: Create user ansible
+      user: name="{{ ansible_username }}" uid="{{ ansible_uid }}" group="{{ ansible_username }}"
+
+    - name: Add ansible to sudo  Check if /etc/sudoers.d/user-ansible exists
+      stat: path=/etc/sudoers.d/user-{{ ansible_username }}
+      register: sudo_userfile_exists
+
+    - name: Add ansible to sudo  Add user in sudo file
+      lineinfile: dest=/etc/sudoers.d/user-{{ ansible_username }}
+        state=present
+        create=yes
+        line='{{ ansible_username }} ALL=(ALL) NOPASSWD:ALL'
+        owner=root
+        group=root
+        mode=0640
+        validate='visudo -cf %s'

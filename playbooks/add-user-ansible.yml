@@ -1,14 +1,14 @@
 - hosts: newhosts
-  remote_user: root 
+#  remote_user: root 
 
   roles:
-     - { role: group, mode: create, groupname: "{{ ansible_group }}", gid: "{{ ansible_gid }}" }
-     - { role: user,  mode: create, username: "{{ ansible_user }}",   uid: "{{ ansible_uid }}", additional_groups: wheel }
-     - { role: sudo,  mode: user_without_pw, username: "{{ ansible_user }}" }
+     - { role: group, mode: create, groupname: "{{ ansible_groupname }}", gid: "{{ ansible_gid }}" }
+     - { role: user,  mode: create, username: "{{ ansible_username }}",   uid: "{{ ansible_uid }}", additional_groups: wheel }
+     - { role: sudo,  mode: user_without_pw, username: "{{ ansible_username }}" }
 
   tasks:
   - name: Add ansadmin's public key to the authorized keys file
-    authorized_key: user="{{ ansible_user }}" key="{{ lookup('file', '/home/pappam/ansible/files/id_rsa.pub.ansadmin') }}"
+    authorized_key: user="{{ ansible_username }}" key="{{ lookup('file', '/home/pappam/ansible/files/id_rsa.pub.ansadmin') }}"
 
   - name: user ansible add pubkey of ansadmin on ansible server
-    authorized_key: user="{{ ansible_user }}" key="{{ lookup('file', '/home/pappam/ansible/roles/baseline/files/id_rsa.pub.ansadmin') }}"
+    authorized_key: user="{{ ansible_username }}" key="{{ lookup('file', '/home/pappam/ansible/roles/baseline/files/id_rsa.pub.ansadmin') }}"
