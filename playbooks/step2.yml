@@ -1,0 +1,8 @@
+- hosts: newhosts
+  remote_user: ansible
+  become: yes
+
+  tasks:
+    - name: Install required package
+      package: name=libselinux-python state=latest
+

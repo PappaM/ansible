@@ -25,3 +25,9 @@
         group=root
         mode=0640
         validate='visudo -cf %s'
+
+    - name: Add ansible's public key to the authorized keys file
+      authorized_key: user=ansible key="{{ lookup('file', '/home/pappam/ansible/files/pub-key-HTPC-ansible') }}"
+
+    - name: Add pappam's public key to the authorized keys file
+      authorized_key: user=ansible key="{{ lookup('file', '/home/pappam/ansible/files/pub-key-HTPC-pappam') }}"
