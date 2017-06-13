@@ -1,14 +1,42 @@
-- hosts: newhosts
-#  remote_user: root 
+---
+#
+# Create user ansible so all other playbooks can this account
+# Therfore is need sudo-without-password
+# The pub key fo the two users that run playbooks from server 
+#  HTPC are added because password-less logon is required.
 
-  roles:
-     - { role: group, mode: create, groupname: "{{ ansible_groupname }}", gid: "{{ ansible_gid }}" }
-     - { role: user,  mode: create, username: "{{ ansible_username }}",   uid: "{{ ansible_uid }}", additional_groups: wheel }
-     - { role: sudo,  mode: user_without_pw, username: "{{ ansible_username }}" }
+- hosts: newhosts
+  remote_user: pi
+  become: yes
 
   tasks:
-  - name: Add ansadmin's public key to the authorized keys file
-    authorized_key: user="{{ ansible_username }}" key="{{ lookup('file', '/home/pappam/ansible/files/id_rsa.pub.ansadmin') }}"
+    - name: Install required package
+      package: name=libselinux-python state=latest
+      when: ansible_distribution != "Debian"
 
-  - name: user ansible add pubkey of ansadmin on ansible server
-    authorized_key: user="{{ ansible_username }}" key="{{ lookup('file', '/home/pappam/ansible/roles/baseline/files/id_rsa.pub.ansadmin') }}"
+    - name: Create group ansible
+      group: name="{{ ansible_groupname }}" gid="{{ ansible_gid }}"
+
+    - name: Create user ansible
+      user: name="{{ ansible_username }}" uid="{{ ansible_uid }}" group="{{ ansible_username }}"
+
+    - name: Add ansible to sudo  Check if /etc/sudoers.d/user-ansible exists
+      stat: path=/etc/sudoers.d/user-{{ ansible_username }}
+      register: sudo_userfile_exists
+
+    - name: Add ansible to sudo  Add user in sudo file
+      lineinfile: dest=/etc/sudoers.d/user-{{ ansible_username }}
+        state=present
+        create=yes
+        line='{{ ansible_username }} ALL=(ALL) NOPASSWD:ALL'
+        owner=root
+        group=root
+        mode=0640
+        validate='visudo -cf %s'
+
+    - name: Add ansible's public key to the authorized keys file
+      authorized_key: user=ansible key="{{ lookup('file', '/opt/ansible/keys/pub-key-HTPC-ansible') }}"
+
+    - name: Add pappam's public key to the authorized keys file
+      authorized_key: user=ansible key="{{ lookup('file', '/opt/ansible/keys/pub-key-HTPC-pappam') }}"
+...
